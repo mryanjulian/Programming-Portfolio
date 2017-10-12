@@ -1,6 +1,6 @@
 #This program computes a list of primes up to size n via Eratosthenes number sieve.
 
-n = 100000
+n = 200000
 f = open("primes.txt",'w')
 primes = [2]
 f.write("2"+'\n')
