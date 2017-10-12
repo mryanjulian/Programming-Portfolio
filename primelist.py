@@ -3,7 +3,7 @@
 n = 100000
 f = open("primes.txt",'w')
 primes = [2]
-f.write("2")
+f.write("2"+'\n')
 testlist = range(3,n,2) #Initialize with only odd integers to avoid needless divisibility tests
 i = 0
 while primes[i] < testlist[len(testlist)-1]:
