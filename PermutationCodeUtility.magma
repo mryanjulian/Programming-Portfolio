@@ -1,0 +1,183 @@
+//This program contains functions that are useful for studying the Kendall-tau and Ulam distances on codes over symmetric groups.
+
+//This function computes the Kendall-tau weight of an element g
+ktwt := function(g)
+	perm := ElementToSequence(g);
+	n := #perm;
+	wt := 0;
+	for i := 1 to n do
+		for j := i+1 to n do
+			if perm[i] gt perm[j] then
+				wt := wt+1;
+			end if;
+		end for;
+	end for;
+	return wt;
+	end function;
+
+//This function computes the Kendall-tau distance between g and h
+ktdist := function(g,h)
+	return ktwt(g/h);
+	end function;
+
+//This function computes the Ulam weight of an element g
+ulamwt := function(g)
+	list := ElementToSequence(g);
+	n := #list;
+	lis := [];
+	for i := 1 to n do
+		lis[i] := 1;
+	end for;
+	for j := 2 to n do
+		for k := 1 to j do
+			if list[j] gt list[k] and lis[j] lt lis[k]+1 then
+				lis[j] := lis[k]+1;
+			end if;
+		end for;
+	end for;
+	maximum := 0;
+	for i := 1 to n do
+		maximum := Max(maximum, lis[i]);
+	end for;
+	return n-maximum;
+	end function;
+
+//This function computes the Ulam distance between g and h
+ulamdist := function(g,h)
+	return ulamwt(g/h);
+	end function;
+
+//This function computes the Kendall-tau distance matrix for S_n
+ktmatrix := function(n)
+	G := SymmetricGroup(n);
+	Glist := [];
+	for g in G do
+		Append(~Glist,g);
+	end for;
+	array := [];
+	for i :=1 to #G do
+		Append(~array,[]);
+	end for;
+	for i := 1 to #G do
+		for j := 1 to #G do
+			array[i,j] := ktdist(Glist[i],Glist[j]);
+		end for;
+	end for;
+	return array,Glist;
+	end function;
+
+//This function computes the Ulam distance matrix for S_n
+ulammatrix := function(n)
+	G := SymmetricGroup(n);
+	Glist := [];
+	for g in G do
+		Append(~Glist,g);
+	end for;
+	array := [];
+	for i := 1 to #G do
+		Append(~array,[]);
+	end for;
+	for i := 1 to #G do
+		for j := 1 to #G do
+			array[i,j] := ulamdist(Glist[i],Glist[j]);
+		end for;
+	end for;
+	return array,Glist;
+	end function;
+
+//This function computes the minimum Kendall-tau distance of a code given as a list of elements from S_n
+ktmindist := function(C)
+	d := #C;
+	dist := ktdist(C[1],C[2]);
+	for i := 1 to d do
+		for j:= i+1 to d do
+			newdist := ktdist(C[i],C[j]);
+			if newdist lt dist then
+				dist := newdist;
+			end if;
+		end for;
+	end for;
+	return dist;
+	end function;
+
+//This function computes the minimum Ulam distance of a code given as a list of elements from S_n
+ulammindist := function(C)
+	d := #C;
+	dist := ulamdist(C[1],C[2]);
+	for i := 1 to d do
+		for j := i+1 to d do
+			newdist := ulamdist(C[i],C[j]);
+			if newdist lt dist then
+				dist := newdist;
+			end if;
+		end for;
+	end for;
+	return dist;
+	end function;
+
+//This function creates a collection of k random indices from 1 to n
+randk := function(n,k)
+	set := {};
+	while #set lt k do
+		Include(~set,Random(1,n));
+	end while;
+	return set;
+	end function;
+
+//This function randomly constructs m codes of size k in S_n and returns the largest minimum Kendall-tau distance achieved and a code that achieved it
+randktmindist := function(n,k,m)
+	G := SymmetricGroup(n);
+	Glist := [];
+	for g in G do
+		Append(~Glist,g);
+	end for;
+	indices := randk(Factorial(n),k);
+	C := [];
+	for i in indices do
+		Append(~C,Glist[i]);
+	end for;
+	mindist := ktmindist(C);
+	bestcode := C;
+	for j := 1 to m-1 do
+		indices := randk(Factorial(n),k);
+		C := [];
+		for i in indices do
+			Append(~C,Glist[i]);
+		end for;
+		newmindist := ktmindist(C);
+		if newmindist gt mindist then
+			mindist := newmindist;
+			bestcode := C;
+		end if;
+	end for;
+	return mindist,bestcode;
+	end function;
+
+//This function randomly constructs m codes of size k in S_n and returns the largest minimum Kendall-tau distance achieved and a code that achieved it
+randulammindist := function(n,k,m)
+	G := SymmetricGroup(n);
+	Glist := [];
+	for g in G do
+		Append(~Glist,g);
+	end for;
+	indices := randk(Factorial(n),k);
+	C := [];
+	for i in indices do
+		Append(~C,Glist[i]);
+	end for;
+	mindist := ulammindist(C);
+	bestcode := C;
+	for j := 1 to m-1 do
+		indices := randk(Factorial(n),k);
+		C := [];
+		for i in indices do
+			Append(~C,Glist[i]);
+		end for;
+		newmindist := ulammindist(C);
+		if newmindist gt mindist then
+			mindist := newmindist;
+			bestcode := C;
+		end if;
+	end for;
+	return mindist,bestcode;
+	end function;
