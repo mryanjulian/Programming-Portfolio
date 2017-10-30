@@ -1,0 +1,17 @@
+//This program computes and factors the Kendall-tau weight enumerators for A_n
+
+P<x,y>:=PolynomialRing(Integers(),2);
+geosum:=x+y;
+weightSn:=x+y;
+
+for n:=2 to 29 do
+	geosum:=y*geosum+x^n;
+	weightSn:=weightSn*geosum;
+	weightAn:=(weightSn+Evaluate(weightSn,<-x,y>)) div 2;
+	print "The factorization of the weight enumerator for A_n for n =", n+1, "is";
+	print Factorization(weightAn);
+	if IsOdd(n) then
+		print "The factorization of the f_n part is ";
+		print Factorization(Evaluate(geosum,<x^2,y^2>));
+	end if;
+	end for;

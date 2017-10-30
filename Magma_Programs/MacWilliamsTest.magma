@@ -1,0 +1,87 @@
+// Test whether the MacWilliams identity holds for the groups SmallGroup(n,k)^m
+//n:=6;
+//k:=2;
+//m:=2;
+//s:=11; //subgroup class to test
+Q:=Rationals();
+R<x,y>:=PolynomialRing(Q,2);
+Cases:=[];
+NonAb:=[];
+
+// Compute the weight of individual codewords
+Wt:=function(h,G,Gm,m)
+	w:=0;
+	for i:=1 to m do
+		L:=[ ];
+		for j:=1 to i-1 do
+			for p:=1 to #PCGenerators(G) do
+				Append(~L,Gm.((j-1)*#PCGenerators(G)+p)->Id(Gm));
+				end for;
+			end for;
+		for p:=1 to #PCGenerators(G) do
+			Append(~L,Gm.((i-1)*#PCGenerators(G)+p)->Gm.((i-1)*#PCGenerators(G)+p));
+			end for;
+		for j:=i+1 to m do
+			for p:=1 to #PCGenerators(G) do
+				Append(~L,Gm.((j-1)*#PCGenerators(G)+p)->Id(Gm));
+				end for;
+			end for;
+		f:=hom< Gm -> Gm | L>;
+		if not IsId(f(Gm!h)) then
+			w:=w+1;
+			end if;
+		end for;
+	return w;
+	end function;
+
+// Compute the weight enumerator
+WtEnum:=function(H,G,Gm,m)
+	P:=0;
+	for h in H do
+		P:=P+x^Wt(h,G,Gm,m)*y^(m-Wt(h,G,Gm,m));
+		end for;
+	return P;
+	end function;
+
+// Compute the MacWilliams transform of the weight enumerator
+MacWTransform:=function(H,G,Gm,m)
+	return Evaluate(WtEnum(H,G,Gm,m),<y-x,y+x>) div #H;
+	end function;
+
+// Set Gm = SmallGroup(n,k)^m and test MacWilliams
+Test:=procedure(n,m,k,~Cases,~NonAb)
+	G:=SmallGroup(n,k);
+	Gm:=SmallGroup(1,1);
+	if not IsAbelian(G) then
+	for i:= 1 to m do
+		Gm:=DirectProduct(Gm,G);
+		end for;
+//	for s:=1 to #SubgroupClasses(Gm) do
+	for s:=182 to 182 do
+		print "   s = ", s;
+		H:=SubgroupClasses(Gm)[s]`subgroup;
+		W:=WtEnum(H,G,Gm,m);
+		print W;
+		if W eq MacWTransform(H,G,Gm,m) then
+			Append(~Cases,<n,m,k,s,G,H>);
+			if not IsAbelian(H) then
+				Append(~NonAb,<n,m,k,s,G,H>);
+				<n,m,k,s,G,H>;
+				end if;
+			end if;
+		end for;
+	end if;
+	end procedure;
+
+// Loop the test procedure:
+for n:=6 to 6 do
+	for m:=5 to 5 do
+		print "Testing ", n,", ",m;
+		for k:=1 to 1 do //NumberOfSmallGroups(n) do
+			print "k = ", k;
+			Test(n,m,k,~Cases,~NonAb);
+			end for;
+		end for;
+	end for;
+
+
